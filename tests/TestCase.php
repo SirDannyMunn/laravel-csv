@@ -75,9 +75,6 @@ abstract class TestCase extends BaseTestCase
         $app['config']->set('filesystems.default', 'local');
         $app['config']->set('filesystems.disks.local.root', realpath(__DIR__ . '/Data/Storage'));
 
-        $app['config']->set('filesystems.disks.samples.driver', 'local');
-        $app['config']->set('filesystems.disks.samples.root', realpath(__DIR__ . '/Data/Samples'));
-
         $app['config']->set('database.default', 'testing');
         $app['config']->set('database.connections.testing', [
             'driver' => env('DB_DRIVER', 'sqlite'),
