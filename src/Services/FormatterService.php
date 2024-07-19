@@ -24,7 +24,7 @@ class FormatterService
      * @param \DateTime|string $date
      * @return string
      */
-    public function date($date): string
+    public function date(\DateTime|string $date): string
     {
         return FormatterHelper::date($date, $this->config->format_date);
     }
@@ -33,16 +33,16 @@ class FormatterService
      * @param \DateTime|string $date
      * @return string
      */
-    public function datetime($date): string
+    public function datetime(\DateTime|string $date): string
     {
         return FormatterHelper::date($date, $this->config->format_datetime);
     }
 
     /**
-     * @param int|float|string $number
+     * @param float|int|string $number
      * @return string
      */
-    public function decimal($number): string
+    public function decimal(float|int|string $number): string
     {
         return FormatterHelper::number(
             $number,
@@ -53,10 +53,10 @@ class FormatterService
     }
 
     /**
-     * @param int|float|string $number
+     * @param float|int|string $number
      * @return string
      */
-    public static function integer($number): string
+    public static function integer(float|int|string $number): string
     {
         return FormatterHelper::number($number);
     }

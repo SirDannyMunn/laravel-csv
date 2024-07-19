@@ -1,0 +1,60 @@
+<?php
+
+namespace Vitorccs\LaravelCsv\Tests\Concerns\Importables;
+
+use Vitorccs\LaravelCsv\Concerns\WithHeadings;
+use Vitorccs\LaravelCsv\Tests\Data\Imports\NoHeadings\FromContentsImport as NoHeadingsImport;
+use Vitorccs\LaravelCsv\Tests\Data\Imports\WithHeadings\FromContentsImport as WithHeadingsImport;
+
+class FromContentsTest extends AbstractTestCase
+{
+    public function test_all_from_contents()
+    {
+        $imports = [
+            new NoHeadingsImport(),
+            new WithHeadingsImport(),
+        ];
+
+        foreach ($imports as $import) {
+            $actual = $import->getArray();
+
+            $this->assertEquals($actual, $import->expected());
+        }
+    }
+
+    public function test_limit_from_contents()
+    {
+        $limit = rand(1, 9);
+
+        $imports = [
+            new NoHeadingsImport($limit),
+            new WithHeadingsImport($limit),
+        ];
+
+        foreach ($imports as $import) {
+            $actual = $import->getArray();
+            $expected = $import instanceof WithHeadings
+                ? $limit + 1
+                : $limit;
+
+            $this->assertCount($expected, $actual);
+        }
+    }
+
+    /**
+     * @dataProvider noHeadingsChunkProvider
+     * @dataProvider withHeadingChunkProvider
+     */
+    public function test_chunk_contents(?int  $limit,
+                                        int   $size,
+                                        int   $expectedCalls,
+                                        array $expectedRecords,
+                                        bool  $withHeadings)
+    {
+        $import = $withHeadings
+            ? new WithHeadingsImport($limit)
+            : new NoHeadingsImport($limit);
+
+        $this->assertChunk($import, $size, $expectedCalls, $expectedRecords);
+    }
+}

@@ -25,7 +25,7 @@ class CsvImporter
      */
     public function getConfig(): CsvConfig
     {
-       return $this->service->getConfig();
+        return $this->service->getConfig();
     }
 
     /**
@@ -37,12 +37,33 @@ class CsvImporter
     }
 
     /**
-     * @param string $filename
-     * @param string|null $disk
+     * @param object $importable
+     * @return int
+     */
+    public function count(object $importable): int
+    {
+        return $this->service->count($importable);
+    }
+
+    /**
+     * @param object $importable
      * @return array
      */
-    public function fromDisk(string $filename, ?string $disk = null): array
+    public function getArray(object $importable): array
     {
-        return $this->service->fromDisk($filename, $disk);
+        return $this->service->getArray($importable);
+    }
+
+    /**
+     * @param object $importable
+     * @param callable(array,int):void $callable
+     * @param int|null $size
+     * @return void
+     */
+    public function chunkArray(object   $importable,
+                               callable $callable,
+                               ?int     $size): void
+    {
+        $this->service->chunkArray($importable, $callable, $size);
     }
 }

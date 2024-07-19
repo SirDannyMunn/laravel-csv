@@ -7,13 +7,13 @@ use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpFoundation\StreamedResponse;
-use Vitorccs\LaravelCsv\Concerns\FromArray;
-use Vitorccs\LaravelCsv\Concerns\FromCollection;
-use Vitorccs\LaravelCsv\Concerns\FromQuery;
+use Vitorccs\LaravelCsv\Concerns\Exportables\FromArray;
+use Vitorccs\LaravelCsv\Concerns\Exportables\FromCollection;
+use Vitorccs\LaravelCsv\Concerns\Exportables\FromQuery;
 use Vitorccs\LaravelCsv\Entities\CsvConfig;
 use Vitorccs\LaravelCsv\Exceptions\InvalidCellValueException;
-use Vitorccs\LaravelCsv\Handlers\ArrayHandler;
-use Vitorccs\LaravelCsv\Handlers\StreamHandler;
+use Vitorccs\LaravelCsv\Handlers\Writers\ArrayHandler;
+use Vitorccs\LaravelCsv\Handlers\Writers\StreamHandler;
 use Vitorccs\LaravelCsv\Helpers\CsvHelper;
 use Vitorccs\LaravelCsv\Jobs\CreateCsv;
 
@@ -66,7 +66,7 @@ class ExportableService
             return $exportable->query()->count();
         }
 
-        return 0;
+        throw new \RuntimeException('Missing data source trait');
     }
 
     /**
@@ -97,7 +97,8 @@ class ExportableService
      * @return StreamedResponse
      * @throws InvalidCellValueException
      */
-    public function download(object $exportable, string $filename): StreamedResponse
+    public function download(object $exportable,
+                             string $filename): StreamedResponse
     {
         $headers = [
             'Content-Type' => CsvHelper::$contentType,
@@ -156,7 +157,7 @@ class ExportableService
      * @return resource
      * @throws InvalidCellValueException
      */
-    private function getStream(object $exportable)
+    public function getStream(object $exportable)
     {
         $stream = App::make(Writer::class, [
             'formatter' => new FormatterService($this->config),

@@ -99,4 +99,14 @@ class CsvExporter
     {
         return $this->service->queue($exportable, $filename, $disk, $diskOptions);
     }
+
+    /**
+     * @param object $exportable
+     * @return resource
+     * @throws InvalidCellValueException
+     */
+    public function stream(object $exportable)
+    {
+        return $this->service->getStream($exportable);
+    }
 }

@@ -4,12 +4,21 @@ namespace Vitorccs\LaravelCsv\Tests;
 
 use Illuminate\Support\Facades\Storage;
 use Orchestra\Testbench\TestCase as BaseTestCase;
-use Vitorccs\LaravelCsv\Entities\CsvConfig;
 use Vitorccs\LaravelCsv\Facades\CsvImporter;
+use Vitorccs\LaravelCsv\Helpers\CsvHelper;
 use Vitorccs\LaravelCsv\ServiceProviders\CsvServiceProvider;
 
 abstract class TestCase extends BaseTestCase
 {
+    protected string $filename;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->filename = uniqid() . 'csv';
+    }
+
     protected function getPackageProviders($app)
     {
         return [
@@ -28,22 +37,29 @@ abstract class TestCase extends BaseTestCase
         return 'UTC';
     }
 
-    /**
-     * @param string $filename
-     * @param CsvConfig|null $csvConfig
-     * @return array
-     */
-    public function readFromDisk(string $filename, CsvConfig $csvConfig = null): array
+    public function getFromDisk(string $filename,
+                                bool   $cleanUtf8Bom = true): string
     {
-        $csvConfig = $csvConfig ?: CsvImporter::getConfig();
+        $csvConfig = CsvImporter::getConfig();
+        $contents = Storage::disk($csvConfig->disk)->get($filename) ?: '';
 
-        CsvImporter::setConfig($csvConfig);
+        // remove empty line break
+        $contents = preg_replace('/\s$/', '', $contents);
 
-        $contents = CsvImporter::fromDisk($filename);
+        if ($cleanUtf8Bom) {
+            $contents = str_replace(CsvHelper::getBom(), '', $contents);
+        }
 
         Storage::disk($csvConfig->disk)->delete($filename);
 
         return $contents;
+    }
+
+    public function getFromDiskArray(string $filename,
+                                     bool   $cleanUtf8Bom = true): array
+    {
+        $contents = $this->getFromDisk($filename);
+        return explode("\n", $contents);
     }
 
     /**
@@ -59,21 +75,16 @@ abstract class TestCase extends BaseTestCase
         $app['config']->set('filesystems.default', 'local');
         $app['config']->set('filesystems.disks.local.root', realpath(__DIR__ . '/Data/Storage'));
 
-        $app['config']->set('filesystems.disks.samples.driver', 'local');
-        $app['config']->set('filesystems.disks.samples.root', realpath(__DIR__ . '/Data/Samples'));
-
         $app['config']->set('database.default', 'testing');
         $app['config']->set('database.connections.testing', [
-            'driver'   => env('DB_DRIVER', 'sqlite'),
-            'host'     => env('DB_HOST'),
-            'port'     => env('DB_PORT'),
+            'driver' => env('DB_DRIVER', 'sqlite'),
+            'host' => env('DB_HOST'),
+            'port' => env('DB_PORT'),
             'database' => env('DB_DATABASE', ':memory:'),
             'username' => env('DB_USERNAME'),
             'password' => env('DB_PASSWORD'),
-            'prefix'   => env('DB_PREFIX')
+            'prefix' => env('DB_PREFIX')
         ]);
-
-
     }
 
     protected function defineDatabaseMigrations()

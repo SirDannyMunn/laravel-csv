@@ -2,28 +2,37 @@
 
 namespace Vitorccs\LaravelCsv\Tests\Concerns;
 
-use Vitorccs\LaravelCsv\Tests\Data\Database\Seeders\TestUsersSeeder;
+use Vitorccs\LaravelCsv\Tests\Data\Database\Seeders\TestCsvSeeder;
 use Vitorccs\LaravelCsv\Tests\Data\Exports\WithMappingExport;
+use Vitorccs\LaravelCsv\Tests\Data\Imports\WithMappingImport;
 use Vitorccs\LaravelCsv\Tests\TestCase;
 
 class WithMappingTest extends TestCase
 {
-    protected string $filename = 'with_mapping_test.csv';
-
     protected function setUp(): void
     {
         parent::setUp();
 
-        $this->seed(TestUsersSeeder::class);
+        $this->seed(TestCsvSeeder::class);
     }
 
-    public function test_from_query()
+    public function test_export_mapping()
     {
         $export = new WithMappingExport();
 
         $export->store($this->filename);
-        $contents = $this->readFromDisk($this->filename);
+        $actual = $this->getFromDisk($this->filename);
 
-        $this->assertEquals($export->toArray(), $contents);
+        $this->assertSame($export->expected(), $actual);
+    }
+
+    public function test_import_mapping()
+    {
+        $import = new WithMappingImport();
+
+        $rows = $import->getArray();
+        $expected = $import->expected();
+
+        $this->assertSame($rows, $expected);
     }
 }

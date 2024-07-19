@@ -2,10 +2,10 @@
 
 namespace Vitorccs\LaravelCsv\Tests\Data\Exports;
 
-use Vitorccs\LaravelCsv\Concerns\Exportable;
-use Vitorccs\LaravelCsv\Concerns\FromQuery;
+use Vitorccs\LaravelCsv\Concerns\Exportables\Exportable;
+use Vitorccs\LaravelCsv\Concerns\Exportables\FromQuery;
 use Vitorccs\LaravelCsv\Concerns\WithMapping;
-use Vitorccs\LaravelCsv\Tests\Data\Stubs\TestUser;
+use Vitorccs\LaravelCsv\Tests\Data\Stubs\TestCsv;
 
 class WithMappingExport implements FromQuery, WithMapping
 {
@@ -13,15 +13,25 @@ class WithMappingExport implements FromQuery, WithMapping
 
     public function query()
     {
-        return TestUser::query();
+        return TestCsv::query();
     }
 
     public function map($row): array
     {
         return [
-            mb_strtoupper($row->name),
-            $row->created_at->format('Y-m'),
-            $row->active ? 'Active' : 'Inactive'
+            'replace',
+            'concatenate_' . $row->string,
+            $row->integer + 1
         ];
+    }
+
+    public function expected(): string
+    {
+        return 'replace,concatenate_text_1,2' . "\n" .
+            'replace,concatenate_text_2,0' . "\n" .
+            'replace,concatenate_text_3,1001' . "\n" .
+            'replace,concatenate_text_4,-999' . "\n" .
+            'replace,concatenate_text_5,1000001' . "\n" .
+            'replace,concatenate_text_6,-999999';
     }
 }

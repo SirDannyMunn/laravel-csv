@@ -7,8 +7,10 @@ use Vitorccs\LaravelCsv\Entities\CsvConfig;
 
 /**
  * @method static CsvConfig getConfig()
- * @method static array fromDisk(string $filename, ?string $disk = null)
  * @method static void setConfig(CsvConfig $config)
+ * @method static int count(object $importable)
+ * @method static void chunkArray(object $importable, callable $callable, ?int $size = null)
+ * @method static array getArray(object $importable)
  */
 class CsvImporter extends Facade
 {
