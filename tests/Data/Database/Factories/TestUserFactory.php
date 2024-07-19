@@ -2,13 +2,13 @@
 /** @var \Illuminate\Database\Eloquent\Factory $factory */
 
 use Faker\Generator as Faker;
-use Vitorccs\LaravelCsv\Tests\Data\Stubs\TestUser;
+use Vitorccs\LaravelCsv\Tests\Data\Stubs\TestCsv;
 
-$factory->define(TestUser::class, function (Faker $faker) {
+$factory->define(TestCsv::class, function (Faker $faker) {
     return [
-        'name' => $faker->name(),
-        'email' => $faker->unique()->safeEmail(),
-        'email_verified_at' => now(),
-        'active' => 1
+        'integer' => $faker->numberBetween(-1000, 1000),
+        'decimal' => $faker->randomFloat(),
+        'string' => $faker->word(),
+        'timestamp' => $faker->dateTime()
     ];
 });

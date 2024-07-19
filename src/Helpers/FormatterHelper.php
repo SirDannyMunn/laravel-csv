@@ -9,7 +9,8 @@ class FormatterHelper
      * @param string $format
      * @return string
      */
-    public static function date($date, string $format): string
+    public static function date(\DateTime|string $date,
+                                string           $format): string
     {
         if (!($date instanceof \DateTime)) {
             return (string)$date;
@@ -25,10 +26,10 @@ class FormatterHelper
      * @param string $thousandsSep
      * @return string
      */
-    public static function number($number,
-                                  int $decimals = 0,
-                                  string $decimalSep = '.',
-                                  string $thousandsSep = ','): string
+    public static function number(float|int|string $number,
+                                  int              $decimals = 0,
+                                  string           $decimalSep = '.',
+                                  string           $thousandsSep = ','): string
     {
         if (!is_numeric($number)) {
             return (string)$number;

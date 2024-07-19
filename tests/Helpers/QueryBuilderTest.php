@@ -4,8 +4,8 @@ namespace Vitorccs\LaravelCsv\Tests\Helpers;
 
 use Illuminate\Support\Collection;
 use Vitorccs\LaravelCsv\Helpers\QueryBuilderHelper;
-use Vitorccs\LaravelCsv\Tests\Data\Database\Seeders\TestUsersSeeder;
-use Vitorccs\LaravelCsv\Tests\Data\Stubs\TestUser;
+use Vitorccs\LaravelCsv\Tests\Data\Database\Seeders\TestCsvSeeder;
+use Vitorccs\LaravelCsv\Tests\Data\Stubs\TestCsv;
 use Vitorccs\LaravelCsv\Tests\TestCase;
 
 class QueryBuilderTest extends TestCase
@@ -14,12 +14,12 @@ class QueryBuilderTest extends TestCase
     {
         parent::setUp();
 
-        $this->seed(TestUsersSeeder::class);
+        $this->seed(TestCsvSeeder::class);
     }
 
     public function test_from_query()
     {
-        $builder = TestUser::query();
+        $builder = TestCsv::query();
         $chunks = [];
         $chunkSize = 9;
         $countResults = $builder->count();

@@ -2,9 +2,9 @@
 
 namespace Vitorccs\LaravelCsv\Tests\Data\Exports;
 
-use Vitorccs\LaravelCsv\Concerns\Exportable;
-use Vitorccs\LaravelCsv\Concerns\FromQuery;
-use Vitorccs\LaravelCsv\Tests\Data\Stubs\TestUser;
+use Vitorccs\LaravelCsv\Concerns\Exportables\Exportable;
+use Vitorccs\LaravelCsv\Concerns\Exportables\FromQuery;
+use Vitorccs\LaravelCsv\Tests\Data\Stubs\TestCsv;
 
 class WithLimitExport implements FromQuery
 {
@@ -17,6 +17,6 @@ class WithLimitExport implements FromQuery
 
     public function query()
     {
-        return TestUser::query();
+        return TestCsv::query();
     }
 }

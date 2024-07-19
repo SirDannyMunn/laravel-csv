@@ -9,12 +9,13 @@ use Vitorccs\LaravelCsv\Entities\CsvConfig;
 
 /**
  * @method static CsvConfig getConfig()
+ * @method static void setConfig(CsvConfig $config)
  * @method static int count(object $exportable)
  * @method static array toArray(object $exportable)
  * @method static string store(object $exportable, string $filename = null, ?string $disk = null, array $diskOptions = [])
  * @method static StreamedResponse download(object $exportable, string $filename)
+ * @method static stream(object $exportable)
  * @method static PendingDispatch queue(object $exportable, string $filename, ?string $disk = null, array $diskOptions = [])
- * @method static void setConfig(CsvConfig $config)
  */
 class CsvExporter extends Facade
 {

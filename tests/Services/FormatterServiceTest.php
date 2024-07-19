@@ -2,9 +2,9 @@
 
 namespace Vitorccs\LaravelCsv\Tests\Services;
 
-use Vitorccs\LaravelCsv\Tests\TestCase;
-use Vitorccs\LaravelCsv\Tests\Data\DataProvider;
 use Vitorccs\LaravelCsv\Services\FormatterService;
+use Vitorccs\LaravelCsv\Tests\Data\DataProvider;
+use Vitorccs\LaravelCsv\Tests\TestCase;
 
 class FormatterServiceTest extends TestCase
 {

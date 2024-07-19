@@ -2,10 +2,10 @@
 
 namespace Vitorccs\LaravelCsv\Tests\Data\Exports;
 
-use Vitorccs\LaravelCsv\Concerns\Exportable;
-use Vitorccs\LaravelCsv\Concerns\FromQuery;
+use Vitorccs\LaravelCsv\Concerns\Exportables\Exportable;
+use Vitorccs\LaravelCsv\Concerns\Exportables\FromQuery;
 use Vitorccs\LaravelCsv\Concerns\WithMapping;
-use Vitorccs\LaravelCsv\Tests\Data\Stubs\TestUser;
+use Vitorccs\LaravelCsv\Tests\Data\Stubs\TestCsv;
 
 class WithMappingExportSimple implements FromQuery, WithMapping
 {
@@ -13,7 +13,7 @@ class WithMappingExportSimple implements FromQuery, WithMapping
 
     public function query()
     {
-        return TestUser::query();
+        return TestCsv::query();
     }
 
     public function map($row): array

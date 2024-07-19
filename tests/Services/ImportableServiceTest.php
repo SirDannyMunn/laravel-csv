@@ -2,38 +2,78 @@
 
 namespace Vitorccs\LaravelCsv\Tests\Services;
 
+use Vitorccs\LaravelCsv\Concerns\WithHeadings;
+use Vitorccs\LaravelCsv\Entities\CsvConfig;
 use Vitorccs\LaravelCsv\Services\ImportableService;
-use Vitorccs\LaravelCsv\Tests\Data\Database\Seeders\TestUsersSeeder;
+use Vitorccs\LaravelCsv\Tests\Data\Database\Seeders\TestCsvSeeder;
+use Vitorccs\LaravelCsv\Tests\Data\Imports\NoHeadings\FromContentsImport;
+use Vitorccs\LaravelCsv\Tests\Data\Imports\NoHeadings\FromContentsImportAlt;
+use Vitorccs\LaravelCsv\Tests\Data\Imports\NoHeadings\FromDiskImport;
+use Vitorccs\LaravelCsv\Tests\Data\Imports\NoHeadings\FromFileImport;
+use Vitorccs\LaravelCsv\Tests\Data\Imports\NoHeadings\FromResourceImport;
+use Vitorccs\LaravelCsv\Tests\Data\Imports\WithHeadingsImport;
 use Vitorccs\LaravelCsv\Tests\TestCase;
 
 class ImportableServiceTest extends TestCase
 {
     protected ImportableService $service;
-    protected string $disk;
-    protected array $diskOptions;
-    protected array $expected;
 
     protected function setUp(): void
     {
         parent::setUp();
 
-        $this->seed(TestUsersSeeder::class);
+        $this->seed(TestCsvSeeder::class);
 
         $this->service = app(ImportableService::class);
-        $this->disk = 'samples';
-        $this->diskOptions = ['option' => 'value'];
+    }
 
-        $this->expected = [
-            ["A 1","B 1","C 1"],
-            ["A 2","B 2","C 2"],
-            ["A 3","B 3","C 3"]
+    public function test_count()
+    {
+        $imports = [
+            new FromContentsImport(),
+            new FromDiskImport(),
+            new FromFileImport(),
+            new FromResourceImport(),
+            new WithHeadingsImport()
         ];
+
+        foreach ($imports as $import) {
+            $actual = $this->service->count($import);
+            $expected = count($import->expected());
+
+            if (method_exists($import, 'delete')) {
+                $import->delete();
+            }
+
+            if ($import instanceof WithHeadings) {
+                $expected--;
+            }
+
+            $this->assertSame($expected, $actual);
+        }
     }
 
     public function test_from_disk()
     {
-        $contents = $this->service->fromDisk('import_test.csv', $this->disk);
+        $import = new FromDiskImport();
 
-        $this->assertSame($contents, $this->expected);
+        $actual = $this->service->getArray($import);
+        $import->delete();
+
+        $this->assertSame($import->expected(), $actual);
+    }
+
+    public function test_set_config()
+    {
+        $import = new FromContentsImportAlt();
+
+        $csvConfig = new CsvConfig();
+        $csvConfig->csv_delimiter = $import->csvDelimiter();
+        $csvConfig->csv_enclosure = $import->csvEnclosure();
+        $this->service->setConfig($csvConfig);
+
+        $actual = $this->service->getArray($import);
+
+        $this->assertEquals($import->expected(), $actual);
     }
 }

@@ -3,15 +3,15 @@
 namespace Vitorccs\LaravelCsv\Services;
 
 use Illuminate\Database\Eloquent\Model;
-use Vitorccs\LaravelCsv\Concerns\FromArray;
-use Vitorccs\LaravelCsv\Concerns\FromCollection;
-use Vitorccs\LaravelCsv\Concerns\FromQuery;
+use Vitorccs\LaravelCsv\Concerns\Exportables\FromArray;
+use Vitorccs\LaravelCsv\Concerns\Exportables\FromCollection;
+use Vitorccs\LaravelCsv\Concerns\Exportables\FromQuery;
 use Vitorccs\LaravelCsv\Concerns\WithColumnFormatting;
 use Vitorccs\LaravelCsv\Concerns\WithHeadings;
 use Vitorccs\LaravelCsv\Concerns\WithMapping;
 use Vitorccs\LaravelCsv\Enum\CellFormat;
 use Vitorccs\LaravelCsv\Exceptions\InvalidCellValueException;
-use Vitorccs\LaravelCsv\Handlers\Handler;
+use Vitorccs\LaravelCsv\Handlers\Writers\Handler;
 use Vitorccs\LaravelCsv\Helpers\CsvHelper;
 use Vitorccs\LaravelCsv\Helpers\ModelHelper;
 use Vitorccs\LaravelCsv\Helpers\QueryBuilderHelper;
@@ -21,12 +21,12 @@ class Writer
     /**
      * @var FormatterService
      */
-    private FormatterService $formatter;
+    protected FormatterService $formatter;
 
     /**
      * @var Handler
      */
-    private Handler $handler;
+    protected Handler $handler;
 
     /**
      * @param Handler $handler
@@ -84,16 +84,17 @@ class Writer
      * @return void
      * @throws InvalidCellValueException
      */
-    private function iterateRows(object   $exportable,
-                                 iterable $rows): void
+    protected function iterateRows(object   $exportable,
+                                   iterable $rows): void
     {
         $formats = $exportable instanceof WithColumnFormatting ? $exportable->columnFormats() : [];
         $withMapping = $exportable instanceof WithMapping;
-        $rowIndex = 1;
-        foreach ($rows as $row) {
+
+        foreach ($rows as $index => $row) {
             $mappedRow = $withMapping ? $exportable->map($row) : $row;
             $normalizedRow = $this->normalizeRow($mappedRow);
-            $formattedRow = $this->applyFormatting($normalizedRow, $formats, $rowIndex++);
+            $formattedRow = $this->applyFormatting($normalizedRow, $formats, $index);
+
             $this->writeRow($formattedRow);
         }
     }
@@ -102,7 +103,7 @@ class Writer
      * @param mixed $row
      * @return array
      */
-    private function normalizeRow(mixed $row): array
+    protected function normalizeRow(mixed $row): array
     {
         if ($row instanceof Model) {
             $row = ModelHelper::toArrayValues($row);
@@ -123,9 +124,9 @@ class Writer
      * @return array
      * @throws InvalidCellValueException
      */
-    private function applyFormatting(array $row,
-                                     array $formats,
-                                     int   $rowIndex): array
+    protected function applyFormatting(array $row,
+                                       array $formats,
+                                       int   $rowIndex): array
     {
         return array_map(
             fn($value, int $columnIndex) => $this->formatCellValue($value, $formats, $rowIndex, $columnIndex),
@@ -137,13 +138,18 @@ class Writer
     /**
      * @throws InvalidCellValueException
      */
-    private function formatCellValue(mixed $value,
-                                     array $formats,
-                                     int   $rowIndex,
-                                     int   $columnIndex): string
+    protected function formatCellValue(mixed $value,
+                                       array $formats,
+                                       int   $rowIndex,
+                                       int   $columnIndex): string
     {
         $columnLetter = CsvHelper::getColumnLetter($columnIndex + 1);
+        $rowNumber = $rowIndex + 1;
         $format = $formats[$columnLetter] ?? null;
+
+        if (is_null($value)) {
+            return '';
+        }
 
         if ($format === CellFormat::DATE) {
             return $this->formatter->date($value);
@@ -166,7 +172,7 @@ class Writer
                 return (string)$value;
             }
         } catch (\Throwable $e) {
-            throw new InvalidCellValueException("{$columnLetter}{$rowIndex}");
+            throw new InvalidCellValueException("{$columnLetter}{$rowNumber}");
         }
 
         return $value;
@@ -176,7 +182,7 @@ class Writer
      * @param array $content
      * @return void
      */
-    private function writeRow(array $content): void
+    protected function writeRow(array $content): void
     {
         $this->handler->addContent($content);
     }

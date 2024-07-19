@@ -9,12 +9,13 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 use Vitorccs\LaravelCsv\Entities\CsvConfig;
 use Vitorccs\LaravelCsv\Jobs\CreateCsv;
 use Vitorccs\LaravelCsv\Services\ExportableService;
-use Vitorccs\LaravelCsv\Tests\Data\Database\Seeders\TestUsersSeeder;
-use Vitorccs\LaravelCsv\Tests\Data\Exports\FromArrayExport;
-use Vitorccs\LaravelCsv\Tests\Data\Exports\FromCollectionExport;
-use Vitorccs\LaravelCsv\Tests\Data\Exports\FromCursorExport;
-use Vitorccs\LaravelCsv\Tests\Data\Exports\FromEloquentBuilderExport;
-use Vitorccs\LaravelCsv\Tests\Data\Exports\FromQueryBuilderExport;
+use Vitorccs\LaravelCsv\Tests\Data\Database\Seeders\TestCsvSeeder;
+use Vitorccs\LaravelCsv\Tests\Data\Exports\NoHeadings\FromArrayExport;
+use Vitorccs\LaravelCsv\Tests\Data\Exports\NoHeadings\FromArrayExportAlt;
+use Vitorccs\LaravelCsv\Tests\Data\Exports\NoHeadings\FromCollectionExport;
+use Vitorccs\LaravelCsv\Tests\Data\Exports\NoHeadings\FromCursorExport;
+use Vitorccs\LaravelCsv\Tests\Data\Exports\NoHeadings\FromEloquentBuilderExport;
+use Vitorccs\LaravelCsv\Tests\Data\Exports\NoHeadings\FromQueryBuilderExport;
 use Vitorccs\LaravelCsv\Tests\Data\Exports\WithMappingExportSimple;
 use Vitorccs\LaravelCsv\Tests\Data\Helpers\FakerHelper;
 use Vitorccs\LaravelCsv\Tests\TestCase;
@@ -29,7 +30,7 @@ class ExportableServiceTest extends TestCase
     {
         parent::setUp();
 
-        $this->seed(TestUsersSeeder::class);
+        $this->seed(TestCsvSeeder::class);
 
         $this->service = app(ExportableService::class);
         $this->disk = 'local';
@@ -58,7 +59,7 @@ class ExportableServiceTest extends TestCase
 
         foreach ($databaseExports as $export) {
             $this->assertSame(
-                TestUsersSeeder::$amount,
+                count(TestCsvSeeder::USERS),
                 $this->service->count($export)
             );
         }
@@ -150,23 +151,33 @@ class ExportableServiceTest extends TestCase
         $this->assertInstanceOf(StreamedResponse::class, $response);
     }
 
-    public function test_set_config()
+    public function test_stream()
     {
         $export = new FromArrayExport();
+        $stream = $this->service->getStream($export);
+
+        $this->assertTrue(is_resource($stream));
+        $this->assertIsArray(fgetcsv($stream));
+    }
+
+    public function test_set_config()
+    {
+        $export = new FromArrayExportAlt();
 
         $csvConfig = new CsvConfig();
-        $csvConfig->csv_delimiter = '|';
-        $csvConfig->csv_enclosure = "'";
+        $csvConfig->csv_delimiter = $export->csvDelimiter();
+        $csvConfig->csv_enclosure = $export->csvEnclosure();
         $this->service->setConfig($csvConfig);
 
         $filename = 'test_config.csv';
         $this->service->store($export, $filename);
-        $contents = $this->readFromDisk($filename, $csvConfig);
+        $actual = $this->getFromDisk($filename);
 
-        $this->assertEquals($contents, $export->array());
+        $this->assertEquals($export->expected(), $actual);
     }
 
-    private function getExportMock(string $abstractClass, int $limit = 5)
+    private function getExportMock(string $abstractClass,
+                                   int    $limit = 5)
     {
         $mock = $this->getMockForAbstractClass(
             $abstractClass,
